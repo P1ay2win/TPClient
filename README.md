@@ -9,7 +9,7 @@ Find the version suitable for you from the release to download.
 ## Usage
 
 ```
-$ TPClinet -u YOUR_USERNAEM -p YOUR_PASSWORD
+$ TPClient -u YOUR_USERNAEM -p YOUR_PASSWORD
 ```
 
 You need to set `-d` option to your password, only when the password of H3C device verification website is not **123456**.
