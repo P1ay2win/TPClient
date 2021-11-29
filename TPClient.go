@@ -28,6 +28,7 @@ var (
 	nasip    string
 	mac      string
 	secret   = "Eshore!@#"
+	version  = "214"
 	jar, _   = cookiejar.New(nil)
 	client   = &http.Client{
 		Jar: jar,
@@ -55,6 +56,7 @@ type Json struct {
 	Password      string `json:"password,omitempty"`
 	Clientip      string `json:"clientip"`
 	Nasip         string `json:"nasip"`
+	Version       string `json:"version"`
 	Mac           string `json:"mac"`
 	Iswifi        string `json:"iswifi,omitempty"`
 	Timestamp     string `json:"timestamp"`
@@ -94,16 +96,16 @@ func init() {
 
 func usage() {
 	fmt.Print(`                    ___         ___                                     ___           ___
-                   /\  \       /\__\                                   /\__\         /\  \                  
-      ___         /::\  \     /:/  /                      ___         /:/ _/_        \:\  \         ___     
-     /\__\       /:/\:\__\   /:/  /                      /\__\       /:/ /\__\        \:\  \       /\__\    
-    /:/  /      /:/ /:/  /  /:/  /  ___   ___     ___   /:/__/      /:/ /:/ _/_   _____\:\  \     /:/  /    
-   /:/__/      /:/_/:/  /  /:/__/  /\__\ /\  \   /\__\ /::\  \     /:/_/:/ /\__\ /::::::::\__\   /:/__/     
-  /::\  \      \:\/:/  /   \:\  \ /:/  / \:\  \ /:/  / \/\:\  \__  \:\/:/ /:/  / \:\~~\~~\/__/  /::\  \     
- /:/\:\  \      \::/__/     \:\  /:/  /   \:\  /:/  /   ~~\:\/\__\  \::/_/:/  /   \:\  \       /:/\:\  \    
- \/__\:\  \      \:\  \      \:\/:/  /     \:\/:/  /       \::/  /   \:\/:/  /     \:\  \      \/__\:\  \   
-      \:\__\      \:\__\      \::/  /       \::/  /        /:/  /     \::/  /       \:\__\          \:\__\  
-       \/__/       \/__/       \/__/         \/__/         \/__/       \/__/         \/__/           \/__/  
+                   /\  \       /\__\                                   /\__\         /\  \
+      ___         /::\  \     /:/  /                      ___         /:/ _/_        \:\  \         ___
+     /\__\       /:/\:\__\   /:/  /                      /\__\       /:/ /\__\        \:\  \       /\__\
+    /:/  /      /:/ /:/  /  /:/  /  ___   ___     ___   /:/__/      /:/ /:/ _/_   _____\:\  \     /:/  /
+   /:/__/      /:/_/:/  /  /:/__/  /\__\ /\  \   /\__\ /::\  \     /:/_/:/ /\__\ /::::::::\__\   /:/__/
+  /::\  \      \:\/:/  /   \:\  \ /:/  / \:\  \ /:/  / \/\:\  \__  \:\/:/ /:/  / \:\~~\~~\/__/  /::\  \
+ /:/\:\  \      \::/__/     \:\  /:/  /   \:\  /:/  /   ~~\:\/\__\  \::/_/:/  /   \:\  \       /:/\:\  \
+ \/__\:\  \      \:\  \      \:\/:/  /     \:\/:/  /       \::/  /   \:\/:/  /     \:\  \      \/__\:\  \
+      \:\__\      \:\__\      \::/  /       \::/  /        /:/  /     \::/  /       \:\__\          \:\__\
+       \/__/       \/__/       \/__/         \/__/         \/__/       \/__/         \/__/           \/__/
 TPClient version: TPClinet/1.0.3
 Usage: TPClient -u <username> -p <password> [-d password] [-m address]
 
@@ -241,13 +243,14 @@ func paramInit() *Json {
 
 func getVerifyCode() string {
 	timestamp := strconv.FormatInt(time.Now().UnixNano()/1e6, 10)
-	authenticator := fmt.Sprintf("%X", md5.Sum([]byte(clientip+nasip+mac+timestamp+secret)))
+	authenticator := fmt.Sprintf("%X", md5.Sum([]byte(version+clientip+nasip+mac+timestamp+secret)))
 	jsonObject := paramInit()
+	jsonObject.Version = version
 	jsonObject.Timestamp = timestamp
 	jsonObject.Authenticator = authenticator
 	data, _ := json.Marshal(jsonObject)
 
-	resp, _ := client.Post(WEBPORTAL+"/client/challenge", CTJSON, strings.NewReader(string(data)))
+	resp, _ := client.Post(WEBPORTAL+"/client/vchallenge", CTJSON, strings.NewReader(string(data)))
 	body, _ := ioutil.ReadAll(resp.Body)
 	r, _ := regexp.Compile("\"challenge\":\"(.*?)\"")
 	code := r.FindStringSubmatch(string(body))
